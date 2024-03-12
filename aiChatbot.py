@@ -60,6 +60,7 @@ def generate_respond(prompt) -> str:
     dialog.append({"role": "user", "content": prompt})
     response = ai().chat.completions.create(
         model="gpt-3.5-turbo-1106",
+        # stream=True,
         messages=dialog,
         temperature=0.5,
         max_tokens=1024,
@@ -69,12 +70,12 @@ def generate_respond(prompt) -> str:
 
 def text_to_mp3(respond, file_name) -> None:
     speech_file_path = Path(__file__).parent / file_name
-    response = ai().audio.speech.create(
+    with ai().audio.speech.with_streaming_response.create(
         model="tts-1",
         voice="alloy",
         input=respond
-    )
-    response.stream_to_file(speech_file_path)
+    ) as response:
+        response.stream_to_file(speech_file_path)
 
 def play_sound_file(file_name) -> None:
     song = AudioSegment.from_file(file_name)
